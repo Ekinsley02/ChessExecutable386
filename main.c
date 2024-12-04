@@ -48,6 +48,7 @@ void outputBoard(ChessBoardType **board, int gameCondition)
       fflush(stdout);
       }
    printf("%d\n", gameCondition);
+   fflush(stdout);
    }
 
 int main()
@@ -65,6 +66,8 @@ int main()
       int currentState = SELECTING, gameCondition = 0;
       
       bool inCheck = false;
+
+      int menuChoice = 0;
       
    // create game board array
    board = initializeChessBoard( );
@@ -74,15 +77,18 @@ int main()
    
    // Ensure stdout is unbuffered
    setbuf(stdout, NULL);
-   
+
    // Output initial board
    outputBoard( board, gameCondition );
    
+   
+   scanf("%d", &menuChoice);
+
    currentTurn = 'P';
    
    while (gameRunning)
       {
-      
+
       initialPawn = false;
       inCheck = false;
       
@@ -93,8 +99,19 @@ int main()
          outputBoard( board, gameCondition );
          }
 
-      scanf( "%d %d", &start_row, &start_col );
+      if( menuChoice == 1 && currentTurn == 'O' )
+         {
          
+         aiTeacher( board, &start_row, &start_col, &end_row, &end_col, -1 );
+         }
+
+      else
+         {
+
+         scanf( "%d %d", &start_row, &start_col );
+         }
+         
+      fflush(stdout);
       currentType = board[start_row][start_col].type;
 
       // Check if the piece is the first pawn moved
@@ -122,7 +139,11 @@ int main()
          
       outputBoard( board, gameCondition );
 
-      scanf( "%d %d", &end_row, &end_col );
+      if( (menuChoice == 1 && currentTurn == 'P') || menuChoice == 0)
+         {
+         
+         scanf( "%d %d", &end_row, &end_col );
+         }
 
       highlightAttack( board, start_row, start_col, currentType, currentTurn, DEHIGHLIGHT, currentState, initialPawn );
    

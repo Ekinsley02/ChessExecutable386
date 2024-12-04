@@ -6,7 +6,7 @@ Input: Current chess board, board row, board column
 Output: the given chess piece type
 Dependancies: NONE
 */
-bool checkIfAllValidBishopPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int checkRowIndex, int checkColIndex, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode )
+bool checkIfAllValidBishopPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int checkRowIndex, int checkColIndex, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode, int *targetRow, int *targetCol )
    {
       
    // initialize functions/variables
@@ -19,7 +19,14 @@ bool checkIfAllValidBishopPositions( ChessBoardType **board, ChessBoardType **ch
       currentCol = checkColIndex;
       if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
             {
+            
+            if( currentCode == AI )
+               {
                
+               *targetRow = currentRow;
+               *targetCol = currentCol;
+               }
+
             if( currentCode == STALEMATE )
                {
                       
@@ -54,7 +61,14 @@ bool checkIfAllValidBishopPositions( ChessBoardType **board, ChessBoardType **ch
       
          if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
             {
-            
+
+            if( currentCode == AI )
+               {
+               
+               *targetRow = currentRow;
+               *targetCol = currentCol;
+               }
+
               if( currentCode == STALEMATE )
                   {
                       
@@ -89,7 +103,14 @@ bool checkIfAllValidBishopPositions( ChessBoardType **board, ChessBoardType **ch
    
       if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
          {
-              
+
+            if( currentCode == AI )
+               {
+               
+               *targetRow = currentRow;
+               *targetCol = currentCol;
+               }
+
               if( currentCode == STALEMATE )
                   {
                       
@@ -123,7 +144,14 @@ bool checkIfAllValidBishopPositions( ChessBoardType **board, ChessBoardType **ch
            
           if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
               {
-                   
+
+               if( currentCode == AI )
+                  {
+                  
+                  *targetRow = currentRow;
+                  *targetCol = currentCol;
+                  }
+
                   if( currentCode == STALEMATE )
                       {
                   if( !putsOwnKingInCheck( board, currentTurn, initialRow, initialCol, currentRow, currentCol ) )
@@ -159,7 +187,7 @@ Output: the given chess piece type
 Dependancies: NONE
 */
 bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checkedBoard, char currentTurn,
-                                                char currentType, int currentState, int initialRow, int initialCol )
+                                                char currentType, int currentState, int initialRow, int initialCol, int *targetRow, int *targetCol )
    {
    
    // This flips the turn for checking all valid king positions
@@ -171,6 +199,9 @@ bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checke
    // check if top left is available
    if( initialRow > 0 && initialCol > 0 && board[ initialRow - 1 ][ initialCol - 1 ].side != currentTurn )
       {
+      
+      *targetRow = initialRow - 1;
+      *targetCol = initialCol - 1;
 
       // project moving the king
       pieceMoveHelper( checkedBoard, initialRow, initialCol, initialRow - 1, initialCol - 1, currentType, currentTurn );
@@ -194,6 +225,9 @@ bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checke
    if( initialRow > 0 && board[ initialRow - 1 ][ initialCol ].side != currentTurn )
       {
       
+      *targetRow = initialRow - 1;
+      *targetCol = initialCol;
+
       // project moving the king
       pieceMoveHelper( checkedBoard, initialRow, initialCol, initialRow - 1, initialCol, currentType, currentTurn );
       
@@ -216,6 +250,9 @@ bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checke
    if( initialRow > 0 && initialCol < BOARD_SIZE - 1 && board[ initialRow - 1 ][ initialCol + 1 ].side != currentTurn )
       {
         
+      *targetRow = initialRow - 1;
+      *targetCol = initialCol + 1;
+
       // project moving the king
       pieceMoveHelper( checkedBoard, initialRow, initialCol, initialRow - 1, initialCol + 1, currentType, currentTurn );
       
@@ -235,7 +272,10 @@ bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checke
    // check if left of king is available
    if( initialCol > 0 && board[ initialRow ][ initialCol - 1 ].side != currentTurn )
       {
-      
+
+      *targetRow = initialRow;
+      *targetCol = initialCol - 1;
+
       // project moving the king
       pieceMoveHelper( checkedBoard, initialRow, initialCol, initialRow, initialCol - 1, currentType, currentTurn );
       
@@ -256,6 +296,9 @@ bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checke
    if( initialCol < BOARD_SIZE - 1 && board[ initialRow ][ initialCol + 1 ].side != currentTurn )
       {
 
+      *targetRow = initialRow;
+      *targetCol = initialCol + 1;
+
       // project moving the king
       pieceMoveHelper( checkedBoard, initialRow, initialCol, initialRow, initialCol + 1, currentType, currentTurn );
       
@@ -275,7 +318,10 @@ bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checke
    // check if bottom left is available and won't put in check
    if( initialRow < BOARD_SIZE - 1 && initialCol > 0 && board[ initialRow + 1 ][ initialCol - 1 ].side != currentTurn )
       {
-      
+
+      *targetRow = initialRow + 1;
+      *targetCol = initialCol - 1;
+
       // project moving the king
       pieceMoveHelper( checkedBoard, initialRow, initialCol, initialRow + 1, initialCol - 1, currentType, currentTurn );
       
@@ -295,7 +341,10 @@ bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checke
    // check if bottom middle is available and won't put in check
    if( initialRow < BOARD_SIZE - 1 && board[ initialRow + 1 ][ initialCol ].side != currentTurn )
       {
-      
+
+      *targetRow = initialRow + 1;
+      *targetCol = initialCol;
+
       // project moving the king
       pieceMoveHelper( checkedBoard, initialRow, initialCol, initialRow + 1, initialCol, currentType, currentTurn );
       
@@ -315,7 +364,10 @@ bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checke
   // check if bottom right is available and won't put in check
   if( initialRow < BOARD_SIZE - 1 && initialCol < BOARD_SIZE - 1 && board[ initialRow + 1 ][ initialCol + 1 ].side != currentTurn )
       {
-        
+
+      *targetRow = initialRow + 1;
+      *targetCol = initialCol + 1;
+
       // project moving the king
       pieceMoveHelper( checkedBoard, initialRow, initialCol, initialRow + 1, initialCol + 1, currentType, currentTurn );
       
@@ -341,7 +393,7 @@ Input: Current chess board, board row, board column
 Output: the given chess piece type
 Dependancies: NONE
 */
-bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode )
+bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode, int *targetRow, int *targetCol )
    {
    // initialize functions/variables
       // initialize current row/col variables
@@ -352,6 +404,13 @@ bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **chec
    if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
       {
       
+      if( currentCode == AI )
+         {
+         
+         *targetRow = currentRow;
+         *targetCol = currentCol;
+         }
+
        if( currentCode == STALEMATE )
            {
                
@@ -382,7 +441,14 @@ bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **chec
    currentCol = colIndex - 1;
    if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
       {
-      
+
+      if( currentCode == AI )
+         {
+         
+         *targetRow = currentRow;
+         *targetCol = currentCol;
+         }
+
        if( currentCode == STALEMATE )
            {
                
@@ -413,7 +479,14 @@ bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **chec
    currentCol = colIndex + 1;
    if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
       {
-      
+
+      if( currentCode == AI )
+         {
+         
+         *targetRow = currentRow;
+         *targetCol = currentCol;
+         }
+
        if( currentCode == STALEMATE )
            {
                
@@ -443,7 +516,14 @@ bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **chec
    currentCol = colIndex - 1;
    if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
       {
-      
+
+      if( currentCode == AI )
+         {
+         
+         *targetRow = currentRow;
+         *targetCol = currentCol;
+         }
+
        if( currentCode == STALEMATE )
            {
                
@@ -473,7 +553,14 @@ bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **chec
    currentCol = colIndex + 2;
    if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
       {
-       
+
+      if( currentCode == AI )
+         {
+         
+         *targetRow = currentRow;
+         *targetCol = currentCol;
+         }
+
       if( currentCode == STALEMATE )
          {
                
@@ -504,7 +591,14 @@ bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **chec
    currentCol = colIndex + 2;
    if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
       {
+
+      if( currentCode == AI )
+         {
          
+         *targetRow = currentRow;
+         *targetCol = currentCol;
+         }
+
       if( currentCode == STALEMATE )
          {
                
@@ -534,7 +628,14 @@ bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **chec
    currentCol = colIndex - 2;
    if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
       {
+
+      if( currentCode == AI )
+         {
          
+         *targetRow = currentRow;
+         *targetCol = currentCol;
+         }
+
        if( currentCode == STALEMATE )
          {
                
@@ -564,7 +665,14 @@ bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **chec
    currentCol = colIndex - 2;
    if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
       {
+
+      if( currentCode == AI )
+         {
          
+         *targetRow = currentRow;
+         *targetCol = currentCol;
+         }
+
        if( currentCode == STALEMATE )
          {
                
@@ -599,7 +707,7 @@ Output: the given chess piece type
 Dependancies: NONE
 */
 
-bool checkAllValidPawnPositions( ChessBoardType **board, ChessBoardType **checkedBoard, char currentTurn, char currentType, int currentState, int initialRow, int initialCol, int currentCode )
+bool checkAllValidPawnPositions( ChessBoardType **board, ChessBoardType **checkedBoard, char currentTurn, char currentType, int currentState, int initialRow, int initialCol, int currentCode, int *targetRow, int *targetCol )
 	{
 
 	// initialize functions/variables
@@ -622,6 +730,13 @@ bool checkAllValidPawnPositions( ChessBoardType **board, ChessBoardType **checke
 	if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
 		{
 		
+      if( currentCode == AI )
+         {
+         
+         *targetRow = currentRow;
+         *targetCol = currentCol;
+         }
+
 		if( currentCode == STALEMATE )
 			{
 			
@@ -659,7 +774,7 @@ Output: the given chess piece type
 Dependancies: NONE
 */
 
-bool checkAllValidRookPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int checkRowIndex, int checkColIndex, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode )
+bool checkAllValidRookPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int checkRowIndex, int checkColIndex, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode, int *targetRow, int *targetCol )
    {
    // initialize functions/variables
       // initialize current index variables to check all positions
@@ -673,7 +788,15 @@ bool checkAllValidRookPositions( ChessBoardType **board, ChessBoardType **checke
       currentCol = colIndex;
       if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
          {
-             
+            
+            if( currentCode == AI )
+               {
+               //printf("1 Current Row: %d, Current Col: %d", currentRow, currentCol);
+               *targetRow = currentRow;
+               *targetCol = currentCol;
+               return true;
+               }
+
             if( currentCode == STALEMATE )
                {
                if( !putsOwnKingInCheck( board, currentTurn, initialRow, initialCol, currentRow, currentCol ) )
@@ -707,7 +830,15 @@ bool checkAllValidRookPositions( ChessBoardType **board, ChessBoardType **checke
       currentCol = colIndex;
       if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
          {
-             
+         
+          if( currentCode == AI )
+             {
+            //printf("2 Current Row: %d, Current Col: %d", currentRow, currentCol);
+             *targetRow = currentRow;
+             *targetCol = currentCol;
+             return true;
+             }
+
            if( currentCode == STALEMATE )
                {
                   
@@ -742,6 +873,14 @@ bool checkAllValidRookPositions( ChessBoardType **board, ChessBoardType **checke
       if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
          {
       
+          if( currentCode == AI )
+             {
+            //printf("3 Current Row: %d, Current Col: %d", currentRow, currentCol);
+             *targetRow = currentRow;
+             *targetCol = currentCol;
+             return true;
+             }
+
          if( currentCode == STALEMATE )
             {
                    
@@ -777,6 +916,14 @@ bool checkAllValidRookPositions( ChessBoardType **board, ChessBoardType **checke
       if( checkIfValidPosition( checkedBoard, currentType, currentTurn, initialRow, initialCol, currentRow, currentCol, &currentState, false ) )
          {
           
+          if( currentCode == AI )
+             {
+            //printf("4 Current Row: %d, Current Col: %d", currentRow, currentCol);
+             *targetRow = currentRow;
+             *targetCol = currentCol;
+             return true;
+             }
+
          if( currentCode == STALEMATE )
             {
                    

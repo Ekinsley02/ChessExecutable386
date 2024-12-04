@@ -23,7 +23,7 @@ bool isCheckmate( ChessBoardType **board, char currentTurn, int currentCode )
       int rowIndex, colIndex, checkRowIndex = 0, checkColIndex = 0, currentState = MOVING, initialRow, initialCol;
       ChessBoardType **checkedBoard;
       char currentType;
-   
+      int targetRow = 0, targetCol = 0;
    checkedBoard = initializeChessBoard( BOARD_SIZE, BOARD_SIZE );
    
    copyBoard( checkedBoard, board );
@@ -47,7 +47,7 @@ bool isCheckmate( ChessBoardType **board, char currentTurn, int currentCode )
                {
                   
                case PAWN:
-               if( checkAllValidPawnPositions( board, checkedBoard, currentTurn, currentType, currentState, initialRow, initialCol, currentCode ) ) 
+               if( checkAllValidPawnPositions( board, checkedBoard, currentTurn, currentType, currentState, initialRow, initialCol, currentCode, &targetRow, &targetCol ) ) 
                   {
                            
                   return true;
@@ -55,7 +55,7 @@ bool isCheckmate( ChessBoardType **board, char currentTurn, int currentCode )
                   break;
                   
                case ROOK:
-		         if( checkAllValidRookPositions( board, checkedBoard, checkRowIndex, checkColIndex, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode ) )
+		         if( checkAllValidRookPositions( board, checkedBoard, checkRowIndex, checkColIndex, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode, &targetRow, &targetCol ) )
                   {
                         
                   return true;
@@ -63,7 +63,7 @@ bool isCheckmate( ChessBoardType **board, char currentTurn, int currentCode )
 		            break; 
                   
                case KNIGHT:
-               if( checkAllValidKnightPositions( board, checkedBoard, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode ) )
+               if( checkAllValidKnightPositions( board, checkedBoard, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode, &targetRow, &targetCol ) )
                   {
                         
                   return true;
@@ -72,7 +72,7 @@ bool isCheckmate( ChessBoardType **board, char currentTurn, int currentCode )
                   
                
                case BISHOP:
-               if( checkIfAllValidBishopPositions( board, checkedBoard, checkRowIndex, checkColIndex, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode ) )
+               if( checkIfAllValidBishopPositions( board, checkedBoard, checkRowIndex, checkColIndex, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode, &targetRow, &targetCol ) )
                   {
                            
                   return true;
@@ -80,7 +80,7 @@ bool isCheckmate( ChessBoardType **board, char currentTurn, int currentCode )
                   break;
 
                case QUEEN:
-               if( checkAllValidRookPositions( board, checkedBoard, checkRowIndex, checkColIndex, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode ) || checkIfAllValidBishopPositions( board, checkedBoard, checkRowIndex, checkColIndex, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode ) )
+               if( checkAllValidRookPositions( board, checkedBoard, checkRowIndex, checkColIndex, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode, &targetRow, &targetCol ) || checkIfAllValidBishopPositions( board, checkedBoard, checkRowIndex, checkColIndex, rowIndex, colIndex, currentType, currentTurn, initialRow, initialCol, currentState, currentCode, &targetRow, &targetCol ) )
                   {
                         
                   return true;
@@ -88,7 +88,7 @@ bool isCheckmate( ChessBoardType **board, char currentTurn, int currentCode )
                   break;
                   
                case KING:
-               if( checkAllValidKingPositions( board, checkedBoard, currentTurn, currentType, currentState, initialRow, initialCol ) )
+               if( checkAllValidKingPositions( board, checkedBoard, currentTurn, currentType, currentState, initialRow, initialCol, &targetRow, &targetCol ) )
                   {
                   
                   return true;
@@ -344,154 +344,7 @@ char determineType( ChessBoardType **board, int boardRow, int boardCol )
    return board[ boardRow][ boardCol ].type;
    }
 
-/*
-Description: prints the bottom half of the board, after the pieces.
- Also determines which opperating system is used.
-Input: NONE
-Output: printed lower chess board
-Dependancies: NONE
-*/
-void displayBottomBoard()
-   {
 
-   #ifdef OS_WINDOWS
-   
-      printf("|  |                          |  |\n");
-      printf("|  +--------------------------+  |\n");
-      printf("|     H  G  F  E  D  C  B  A     |\n");
-      printf("|                                |\n");
-      printf("|                                |\n");
-      printf("+--------------------------------+\n");
-   #elif defined(OS_MAC)
-      
-      printf("|  |                          |  |\n");
-      printf("|  └--------------------------┘  |\n");
-      printf("|     H  G  F  E  D  C  B  A     |\n");
-      printf("|                                |\n");
-      printf("|                                |\n");
-      printf("└--------------------------------┘\n");
-      
-   #else
-      
-      printf("|  |                          |  |\n");
-      printf("|  +--------------------------+  |\n");
-      printf("|     H  G  F  E  D  C  B  A     |\n");
-      printf("|                                |\n");
-      printf("|                                |\n");
-      printf("+--------------------------------+\n");
-      
-   #endif
-   }
-
-/*
-Description: displays the entire chess board.
-Input: given chess board
-Output: printed chess board
-Dependancies: printTopBoard,
-*/
-void displayChessBoard( ChessBoardType **board, int rows, int cols )
-   {
-
-   // initilaize functions/variables
-      int rowIndex, colIndex, rowNum = BOARD_SIZE;
-      char bar = '|';
-   
-   // print a buffer from the other text
-   printf("\n\n\n\n\n\n\n\n\n\n");
-   
-   // display the top segment of the board
-   displayTopBoard();
-   
-   for( rowIndex = 0; rowIndex < rows; rowIndex++ )
-      {
-         
-      printf( "%c %d%c", bar, rowNum, bar );
-      
-      for( colIndex = 0; colIndex < cols; colIndex++ )
-         { 
-
-         if( board[ rowIndex ][ colIndex ].highlight == true )
-            {
-
-            printf( GREEN_TEXT "%3c" RESET_TEXT,
-                                          board[ rowIndex ][ colIndex ].type );
-            }
-         
-        else if( board[ rowIndex ][ colIndex ].castlePos == true )
-        	{
-        	printf( YELLOW_TEXT "%3c" RESET_TEXT,
-                                          board[ rowIndex ][ colIndex ].type );
-        	}
-         
-            
-         else if( board[ rowIndex ][ colIndex ].side == 'O' )
-            {
-
-            printf( RED_TEXT "%3c" RESET_TEXT,
-                                          board[ rowIndex ][ colIndex ].type );
-            }
-            
-         else if( board[ rowIndex ][ colIndex ].side == 'P' )
-            {
-
-            printf( BLUE_TEXT "%3c" RESET_TEXT,
-                                          board[ rowIndex ][ colIndex ].type );
-            }
-            
-         else
-            {
-
-            printf( "%3c", board[ rowIndex ][ colIndex ].type );
-            }
-
-         }
-         
-      printf("%3c%d %c", bar, rowNum, bar);
-      
-      rowNum = rowNum - 1;
-      
-      printf("\n");
-      }
-      
-   displayBottomBoard();
-   }
-
-/*
-Description: prints the upper half of the board, before the pieces.
- Also determines which opperating system is used.
-Input: NONE
-Output: printed upper chess board
-Dependancies: NONE
-*/
-void displayTopBoard()
-   {
-   #ifdef OS_WINDOWS
-      
-      printf("+--------------------------------+\n");
-      printf("|                                |\n");
-      printf("|                                |\n");
-      printf("|     H  G  F  E  D  C  B  A     |\n");
-      printf("|  +--------------------------+  |\n");
-      printf("|  |                          |  |\n");
-      
-   #elif defined(OS_MAC)
-      
-      printf("┌--------------------------------┐\n");
-      printf("|                                |\n");
-      printf("|     H  G  F  E  D  C  B  A     |\n");
-      printf("|  ┌--------------------------┐  |\n");
-      printf("|  |                          |  |\n");
-      
-   #else
-      
-      printf("+--------------------------------+\n");
-      printf("|                                |\n");
-      printf("|                                |\n");
-      printf("|     H  G  F  E  D  C  B  A     |\n");
-      printf("|  +--------------------------+  |\n");
-      printf("|  |                          |  |\n");
-   #endif
-   }
 
 
 
@@ -937,138 +790,6 @@ void movePiece( ChessBoardType **board, char currentTurn,
    board[ currentRow ][ currentCol ].hasMoved = true;
    }
 
-/*
-Description: Starts the game off and handles events
-Input: chess board
-Output: NONE
-Dependancies: displayChessBoard, columnToIndex, determineType,
- checkForBattle, battleHandler, movePiece
-*/
-void playGame( ChessBoardType **board )
-   {
-   // initialize functions/variables
-      bool gameFlag = true, validMove, inCheck = false;
-      int initialRow, colIndex, rowIndex;
-      char initialCol, type = NON_PLAYER, winner[ 6 ];
-      // control whos turn it is
-      char currentTurn = 'P';
-      int result;
-   
-      
-   displayChessBoard( board, BOARD_SIZE, BOARD_SIZE );
-   
-   while( gameFlag == true )
-      {
-
-      validMove = false;
-      if( currentTurn == 'P' )
-         {
-
-         printf( "\nCurrent turn: BLUE" );
-         }
-
-      else
-         {
-
-         printf( "\nCurrent turn: RED" );
-         }
-      
-      if( isInCheck( board, currentTurn, INCHECK ) )
-         {  
-        
-         if( !isCheckmate( board, currentTurn, NONE ) )
-            {
-               
-            if( currentTurn == 'P' )
-               {
-                  
-               strcpy(winner, "RED");
-               }
-               
-            if( currentTurn == 'O' )
-               {
-                  
-               strcpy(winner, "BLUE");
-               }
-            
-            printf( "\nYour checkmated! %s wins!", winner );
-            
-            gameFlag = false;
-            
-            break;
-            }
-            
-         printf( "\nYour in check!" );
-         
-         inCheck = true;  
-         }
-         
-      else if( isStalemate( board, currentTurn ) )
-        {
-        
-        printf( "\nKing stalemated! Its a tie!" );
-        
-        gameFlag = false;
-        } 
-      
-      
-    do 
-        {
-        printf("\nEnter row: ");
-        result = scanf("%d", &initialRow);
-
-        // Check if the input is valid
-        if( result != 1 ) 
-        
-            {
-            printf("Invalid input. Please enter an integer.\n");
-
-            // Clear the invalid input
-            while (getchar() != '\n');
-            }
-        
-        } while (result != 1);
-        
-      rowIndex = rowToIndex( initialRow );
-      
-      printf( "\nenter col:" );  
-
-      scanf( " %c", &initialCol );
-        
-      // exit game if q is typed
-      if( initialCol == 'Q' || initialCol == 'q' )
-         {
-            
-         gameFlag = false;
-         break;
-         }
-      
-      colIndex = columnToIndex( initialCol );
-      printf("\n col: %d", colIndex );
-      type = determineType( board, rowIndex, colIndex );
-      
-      // make sure the user inputs their piece and its in bounds
-      if( board[ rowIndex ][ colIndex ].side == currentTurn && rowIndex >= 0 && colIndex >= 0 && rowIndex < BOARD_SIZE && colIndex < BOARD_SIZE ) 
-         {
-            
-         selectNextPosition( board, type, currentTurn, rowIndex, colIndex, &validMove, inCheck );
-         displayChessBoard( board, BOARD_SIZE, BOARD_SIZE );
-         }
-      else
-         {
-            
-         displayChessBoard( board, BOARD_SIZE, BOARD_SIZE );
-         printf( "\nInvalid choice please try again" );
-         validMove = false;
-         }
-
-      if( validMove == true )
-         {
-
-         currentTurn = switchTurn( currentTurn );  
-         }    
-      }
-   }
 
 /*
 Description: converts the given row into a usable index
@@ -1129,6 +850,447 @@ bool putsOutOfCheck( ChessBoardType **board, char currentType, int initialRow, i
    
    return false;
    }
+  void aiTeacher(ChessBoardType **board, int *start_row, int *start_col, int *end_row, int *end_col, int code) {
+    int bestValue = -10000; // Start with a very low score for AI
+    int moveStartRow = -1, moveStartCol = -1, moveEndRow = -1, moveEndCol = -1;
+    ChessBoardType **boardCopy;
+    char currentType;
+    int initialRow = 0, initialCol = 0;
+    int currentState = MOVING;
+
+    boardCopy = initializeChessBoard(BOARD_SIZE, BOARD_SIZE);
+
+    // Iterate over the board to find all AI pieces ('O')
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        for (int col = 0; col < BOARD_SIZE; col++) {
+            if (board[row][col].side == 'O') {
+
+                initialRow = row;
+                initialCol = col;
+
+                currentType = board[row][col].type;
+
+                // Generate all valid moves for the current piece
+                switch (currentType) {
+
+                    case PAWN:
+                        evaluatePawnMoves(board, boardCopy, initialRow, initialCol, &bestValue, &moveStartRow, &moveStartCol, &moveEndRow, &moveEndCol);
+                        break;
+
+                    case KNIGHT:
+                        evaluateKnightMoves(board, boardCopy, initialRow, initialCol, &bestValue, &moveStartRow, &moveStartCol, &moveEndRow, &moveEndCol);
+                        break;
+
+                    case BISHOP:
+                        evaluateBishopMoves(board, boardCopy, initialRow, initialCol, &bestValue, &moveStartRow, &moveStartCol, &moveEndRow, &moveEndCol);
+                        break;
+
+                    case ROOK:
+                        evaluateRookMoves(board, boardCopy, initialRow, initialCol, &bestValue, &moveStartRow, &moveStartCol, &moveEndRow, &moveEndCol);
+                        break;
+
+                    case QUEEN:
+                        evaluateQueenMoves(board, boardCopy, initialRow, initialCol, &bestValue, &moveStartRow, &moveStartCol, &moveEndRow, &moveEndCol);
+                        break;
+
+                    case KING:
+                        evaluateKingMoves(board, boardCopy, initialRow, initialCol, &bestValue, &moveStartRow, &moveStartCol, &moveEndRow, &moveEndCol);
+                        break;
+                }
+            }
+        }
+    }
+
+    if (moveStartRow == -1) {
+        // No valid moves available
+        // Handle stalemate or checkmate as needed
+    } else {
+
+        *start_row = moveStartRow;
+        *start_col = moveStartCol;
+        *end_row = moveEndRow;
+        *end_col = moveEndCol;
+    }
+
+    // Free the allocated memory for boardCopy
+    freeBoard(boardCopy);
+}
+
+void evaluateBishopMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol) {
+    char currentType = board[row][col].type;
+    int currentState = MOVING;
+    int currentCode = AI;
+    int directions[4][2] = {
+        { -1, -1 }, { -1, 1 }, { 1, -1 }, { 1, 1 }
+    };
+
+    // Generate all possible bishop moves in each diagonal direction
+    for (int d = 0; d < 4; d++) {
+        int deltaRow = directions[d][0];
+        int deltaCol = directions[d][1];
+        int targetRow = row + deltaRow;
+        int targetCol = col + deltaCol;
+
+        while (targetRow >= 0 && targetRow < BOARD_SIZE && targetCol >= 0 && targetCol < BOARD_SIZE) {
+            if (checkIfValidPosition(board, currentType, 'O', row, col, targetRow, targetCol, &currentState, false)) {
+                evaluateMove(board, boardCopy, row, col, targetRow, targetCol, currentType, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+
+                // Stop if we capture an opponent's piece
+                if (board[targetRow][targetCol].side == 'P') {
+                    break;
+                }
+            } else {
+                break; // Blocked by own piece or invalid position
+            }
+
+            targetRow += deltaRow;
+            targetCol += deltaCol;
+        }
+    }
+}
+
+void evaluateQueenMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol) {
+    // The queen combines the movements of the rook and bishop
+    evaluateRookMoves(board, boardCopy, row, col, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+    evaluateBishopMoves(board, boardCopy, row, col, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+}
+
+void evaluateKingMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol) {
+    int targetRow, targetCol;
+    char currentType = board[row][col].type;
+    int currentState = MOVING;
+    int currentCode = AI;
+    int directions[8][2] = {
+        { -1, -1 }, { -1, 0 }, { -1, 1 },
+        { 0, -1 },           { 0, 1 },
+        { 1, -1 },  { 1, 0 },  { 1, 1 }
+    };
+
+    // Generate all possible king moves (one square in any direction)
+    for (int i = 0; i < 8; i++) {
+        targetRow = row + directions[i][0];
+        targetCol = col + directions[i][1];
+
+        if (targetRow >= 0 && targetRow < BOARD_SIZE && targetCol >= 0 && targetCol < BOARD_SIZE) {
+            if (checkIfValidPosition(board, currentType, 'O', row, col, targetRow, targetCol, &currentState, false)) {
+                // Ensure the king does not move into check
+                copyBoard(boardCopy, board);
+                pieceMoveHelper(boardCopy, row, col, targetRow, targetCol, currentType, 'O');
+                if (!isInCheck(boardCopy, 'O', INCHECK)) {
+                    evaluateMove(board, boardCopy, row, col, targetRow, targetCol, currentType, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+                }
+            }
+        }
+    }
+}
+
+
+
+void evaluateRookMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol) {
+    char currentType = board[row][col].type;
+    int currentState = MOVING;
+    int currentCode = AI;
+    int directions[4][2] = {
+        { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 }
+    };
+
+    // Generate all possible rook moves in each straight direction
+    for (int d = 0; d < 4; d++) {
+        int deltaRow = directions[d][0];
+        int deltaCol = directions[d][1];
+        int targetRow = row + deltaRow;
+        int targetCol = col + deltaCol;
+
+        while (targetRow >= 0 && targetRow < BOARD_SIZE && targetCol >= 0 && targetCol < BOARD_SIZE) {
+            if (checkIfValidPosition(board, currentType, 'O', row, col, targetRow, targetCol, &currentState, false)) {
+                evaluateMove(board, boardCopy, row, col, targetRow, targetCol, currentType, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+
+                // Stop if we capture an opponent's piece
+                if (board[targetRow][targetCol].side == 'P') {
+                    break;
+                }
+            } else {
+                break; // Blocked by own piece or invalid position
+            }
+
+            targetRow += deltaRow;
+            targetCol += deltaCol;
+        }
+    }
+}
+
+
+void evaluatePawnMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol) {
+    int targetRow, targetCol;
+    char currentType = board[row][col].type;
+    int currentState = MOVING;
+    int currentCode = AI;
+
+    // Generate all valid pawn moves
+    // For the AI (assuming it moves down the board), pawns move forward (increasing row index)
+
+    // Move forward
+    targetRow = row + 1;
+    targetCol = col;
+
+    if (checkIfValidPosition(board, currentType, 'O', row, col, targetRow, targetCol, &currentState, false)) {
+        evaluateMove(board, boardCopy, row, col, targetRow, targetCol, currentType, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+    }
+
+    // Capture diagonally left
+    targetRow = row + 1;
+    targetCol = col - 1;
+    if (checkIfValidPosition(board, currentType, 'O', row, col, targetRow, targetCol, &currentState, false)) {
+        evaluateMove(board, boardCopy, row, col, targetRow, targetCol, currentType, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+    }
+
+    // Capture diagonally right
+    targetRow = row + 1;
+    targetCol = col + 1;
+    if (checkIfValidPosition(board, currentType, 'O', row, col, targetRow, targetCol, &currentState, false)) {
+        evaluateMove(board, boardCopy, row, col, targetRow, targetCol, currentType, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+    }
+
+    // Add initial double move if pawn is at starting position
+    if (row == 1) {
+        targetRow = row + 2;
+        targetCol = col;
+        if (checkIfValidPosition(board, currentType, 'O', row, col, targetRow, targetCol, &currentState, true)) {
+            evaluateMove(board, boardCopy, row, col, targetRow, targetCol, currentType, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+        }
+    }
+}
+
+void evaluateMove(ChessBoardType **board, ChessBoardType **boardCopy, int startRow, int startCol, int targetRow, int targetCol, char pieceType, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol) {
+    copyBoard(boardCopy, board);
+
+    // Simulate the AI's move
+    pieceMoveHelper(boardCopy, startRow, startCol, targetRow, targetCol, pieceType, 'O');
+
+    // Evaluate the board
+    int boardValue = evaluateBoard(boardCopy);
+
+    // Add bonuses or penalties based on the move
+    boardValue += moveEvaluation(board, startRow, startCol, targetRow, targetCol, pieceType);
+
+    // **Assess Potential Trades**
+    int tradePenalty = assessTradeRisk(boardCopy, targetRow, targetCol, 'O', pieceType);
+    boardValue -= tradePenalty;
+
+    if (boardValue > *bestValue) {
+        *bestValue = boardValue;
+        *moveStartRow = startRow;
+        *moveStartCol = startCol;
+        *moveEndRow = targetRow;
+        *moveEndCol = targetCol;
+    }
+}
+
+int assessTradeRisk(ChessBoardType **board, int pieceRow, int pieceCol, char aiSide, char aiPieceType) {
+    char opponentSide = (aiSide == 'O') ? 'P' : 'O';
+    int maxPenalty = 0;
+    int aiPieceValue = getPieceValue(aiPieceType);
+
+    // Iterate over opponent pieces to find potential threats
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        for (int col = 0; col < BOARD_SIZE; col++) {
+            if (board[row][col].side == opponentSide) {
+                char opponentPieceType = board[row][col].type;
+
+                if (canCapturePiece(board, row, col, pieceRow, pieceCol, opponentPieceType, opponentSide)) {
+                    int opponentPieceValue = getPieceValue(opponentPieceType);
+                    int penalty = aiPieceValue - opponentPieceValue;
+
+                    if (penalty > maxPenalty) {
+                        maxPenalty = penalty;
+                    }
+                }
+            }
+        }
+    }
+
+    // Only penalize if the trade is unfavorable
+    if (maxPenalty > 0) {
+        return maxPenalty * 10; // Adjust multiplier as needed
+    }
+    return 0; // No significant risk
+}
+
+
+bool isPieceThreatened(ChessBoardType **board, int pieceRow, int pieceCol, char aiSide) {
+    char opponentSide = (aiSide == 'O') ? 'P' : 'O';
+
+    // Iterate over all opponent pieces
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        for (int col = 0; col < BOARD_SIZE; col++) {
+            if (board[row][col].side == opponentSide) {
+                char opponentPieceType = board[row][col].type;
+
+                // Check if the opponent piece can capture the AI's piece
+                if (canCapturePiece(board, row, col, pieceRow, pieceCol, opponentPieceType, opponentSide)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false; // No immediate threat found
+}
+
+bool canCapturePiece(ChessBoardType **board, int startRow, int startCol, int targetRow, int targetCol, char pieceType, char side) {
+    int currentState = MOVING;
+    bool initialPawn = false;
+
+    // Determine if the pawn is in its initial position
+    if (pieceType == PAWN) {
+        if ((side == 'P' && startRow == 6) || (side == 'O' && startRow == 1)) {
+            initialPawn = true;
+        }
+    }
+
+    // Check if the move is valid for the opponent piece
+    if (checkIfValidPosition(board, pieceType, side, startRow, startCol, targetRow, targetCol, &currentState, initialPawn)) {
+        // Ensure the target square contains an AI piece
+        if (board[targetRow][targetCol].side != side && board[targetRow][targetCol].side != 'X') {
+            return true; // The opponent can capture the AI's piece
+        }
+    }
+    return false; // Move is invalid or doesn't result in a capture
+}
+
+
+int moveEvaluation(ChessBoardType **board, int startRow, int startCol, int targetRow, int targetCol, char pieceType) {
+    int score = 0;
+    ChessBoardType targetSquare = board[targetRow][targetCol];
+
+    // Material gain
+    if (targetSquare.side == 'P') {
+        int capturedPieceValue = getPieceValue(targetSquare.type);
+        score += capturedPieceValue * 10; // Multiply to prioritize captures
+    }
+
+    // Positional bonuses
+    switch (pieceType) {
+        case PAWN:
+            // Encourage advancing pawns
+            score += (targetRow - startRow) * 1.25; // Adjust as needed
+            break;
+        case KNIGHT:
+        case BISHOP:
+            // Encourage developing knights and bishops towards the center
+            if ((targetRow >= 2 && targetRow <= 5) && (targetCol >= 2 && targetCol <= 5)) {
+                score += 3;
+            }
+            break;
+        case ROOK:
+            // Encourage rooks on open files
+            if (isOpenFile(board, targetCol)) {
+                score += 2;
+            }
+            break;
+        case QUEEN:
+            // Be cautious with early queen development
+            if (startRow <= 1) {
+                score -= 2;
+            }
+            break;
+        case KING:
+            // Discourage moving the king unnecessarily
+            score -= 5;
+            break;
+    }
+
+    // Control of the center
+    if ((targetRow == 3 || targetRow == 4) && (targetCol == 3 || targetCol == 4)) {
+        score += 2; // Bonus for moving to central squares
+    }
+
+    // Avoid moving the same piece repeatedly without purpose
+    if (startRow == targetRow && startCol == targetCol) {
+        score -= 5;
+    }
+
+    return score;
+}
+
+bool isOpenFile(ChessBoardType **board, int col) {
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        if (board[row][col].type == PAWN) {
+            return false; // File is not open if any pawn is present
+        }
+    }
+    return true;
+}
+
+
+int getPieceValue(char pieceType) {
+    switch (pieceType) {
+        case PAWN:
+            return 1;
+        case KNIGHT:
+            return 3;
+        case BISHOP:
+            return 3;
+        case ROOK:
+            return 5;
+        case QUEEN:
+            return 9;
+        case KING:
+            return 1000; // Arbitrary high value
+        default:
+            return 0;
+    }
+}
+
+int evaluateBoard(ChessBoardType **board) {
+    int score = 0;
+
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        for (int col = 0; col < BOARD_SIZE; col++) {
+            ChessBoardType piece = board[row][col];
+
+            if (piece.side == 'O') {
+                score += getPieceValue(piece.type);
+                // Add positional bonuses if desired
+            } else if (piece.side == 'P') {
+                score -= getPieceValue(piece.type);
+                // Subtract positional bonuses if desired
+            }
+        }
+    }
+
+    return score;
+}
+
+void evaluateKnightMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol) {
+    int targetRow, targetCol;
+    char currentType = board[row][col].type;
+    int currentState = MOVING;
+    int currentCode = AI;
+    int knightMoves[8][2] = {
+        { -2, -1 }, { -2, 1 }, { -1, -2 }, { -1, 2 },
+        { 1, -2 },  { 1, 2 },  { 2, -1 },  { 2, 1 }
+    };
+
+    // Generate all possible knight moves
+    for (int i = 0; i < 8; i++) {
+        targetRow = row + knightMoves[i][0];
+        targetCol = col + knightMoves[i][1];
+
+        if (targetRow >= 0 && targetRow < BOARD_SIZE && targetCol >= 0 && targetCol < BOARD_SIZE) {
+            if (checkIfValidPosition(board, currentType, 'O', row, col, targetRow, targetCol, &currentState, false)) {
+                evaluateMove(board, boardCopy, row, col, targetRow, targetCol, currentType, bestValue, moveStartRow, moveStartCol, moveEndRow, moveEndCol);
+            }
+        }
+    }
+}
+
+
+void freeBoard(ChessBoardType **board) {
+    for (int row = 0; row < BOARD_SIZE; row++) {
+        free(board[row]);
+    }
+    free(board);
+}
 
 /*
 Description: creates a new board with the players given move and analyses if it would put the king into check
@@ -1167,99 +1329,7 @@ bool putsOwnKingInCheck( ChessBoardType **board, char currentTurn, int initialRo
    
    return result;
    }
-/*
-Description: checks if the current piece can attack
-Input: Current chess board, board row, board column
-Output: the given chess piece type
-Dependancies: highlightAttack, displayChessBoard, columnToIndex,
- checkForBattle, movePiece
-*/
-void selectNextPosition(ChessBoardType **board, char currentType,
-                             char currentTurn, int initialRow, int initialCol, bool *validMove, bool inCheck)
-   {
-   // initialize functions/variables
-      int currentRow, colIndex, currentState = SELECTING;
-      char currentCol;
-      bool initialPawn;
 
-   // check if the piece is the first pawn used
-   if( currentTurn == 'P' && board[ initialRow ][ initialCol ].type == PAWN && initialRow == 6 )
-      {
-         
-      initialPawn = true;
-      }
-   else if( currentTurn == 'O' && board[ initialRow ][ initialCol ].type == PAWN && initialRow == 1 )
-      {
-         
-      initialPawn = true;
-      }
-   else
-      {
-         
-      initialPawn = false;
-      }
-
-   // not very optimum, uses currentRow/Col twice, hard to rework since checkIfValidPosition is used twice for every piece
-   if( checkIfValidPosition( board, currentType, currentTurn, initialRow, initialCol, initialRow, initialCol, &currentState, initialPawn ) )
-      {
-         
-      // highlight potential attack points using HIGHLIGHT flag
-      highlightAttack( board, initialRow, initialCol, currentType, currentTurn, HIGHLIGHT, currentState, initialPawn );
-
-      displayChessBoard( board, BOARD_SIZE, BOARD_SIZE );
-
-      highlightAttack( board, initialRow, initialCol, currentType, currentTurn, DEHIGHLIGHT, currentState, initialPawn );
-      }
-
-   // change the state to moving a piece instead of selecting for highlighting
-   currentState = MOVING;
-
-   // prompt where the user would like to attack
-   printf( "\nWhere would you like to move this piece?" );
-   printf("\nenter row:");
-
-   scanf( "%d", &currentRow );
-   
-   currentRow = rowToIndex( currentRow );
-   
-   printf( "\nenter column:" );
-   
-   scanf( " %c", &currentCol );
-
-   // convert the column to index
-   colIndex = columnToIndex( currentCol );
-   
-
-   // check if valid position using moving piece conditions
-   if( ( inCheck && putsOutOfCheck( board, currentType, initialRow, initialCol, currentRow, currentCol, currentTurn, initialPawn ) ) || ( checkIfValidPosition( board, currentType, currentTurn, initialRow, initialCol, currentRow, colIndex, &currentState, initialPawn ) ) )
-      {
-         
-      if( !putsOwnKingInCheck( board, currentTurn, initialRow, initialCol, currentRow, colIndex ) )
-         {
-            
-         movePiece( board, currentTurn, currentRow, colIndex, currentState, initialRow, initialCol );
-         *validMove = true;
-         
-         if( putsOpponentKingInCheck( board, currentTurn, currentRow, colIndex ) )
-            {
-               
-            printf( "\nCheck!" );
-            }
-         }
-      else
-         {
-            
-         printf( "\nCannot put your own king in check, try again" );
-         *validMove = false;
-         }
-      }
-   else
-      {
-         
-      printf( "\nInvalid move, please try again" );
-      *validMove = false;
-      }
-   }
 
 
 /*

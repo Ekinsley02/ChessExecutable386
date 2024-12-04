@@ -119,6 +119,7 @@ checkmate finished, all I need to do now is checkmate for starting pawns, make i
 #define BOTH 3
 #define CHECK 4
 #define STALEMATE 5
+#define AI 6
 
 // create an empty flag
 #define NONE -3
@@ -142,7 +143,7 @@ Input: Current chess board, board row, board column
 Output: the given chess piece type
 Dependancies: NONE
 */
-bool checkIfAllValidBishopPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int checkRowIndex, int checkColIndex, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode );
+bool checkIfAllValidBishopPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int checkRowIndex, int checkColIndex, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode, int *targetRow, int *targetCol );
 
 /*
 Description: checks all valid positions for the rook
@@ -150,7 +151,8 @@ Input: Current chess board, board row, board column
 Output: the given chess piece type
 Dependancies: NONE
 */
-bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checkedBoard, char currentTurn, char currentType, int currentState, int initialRow, int initialCol );
+bool checkAllValidKingPositions( ChessBoardType **board, ChessBoardType **checkedBoard, char currentTurn,
+                                                char currentType, int currentState, int initialRow, int initialCol, int *targetRow, int *targetCol );
 
 /*
 Description: checks all valid positions for the knight
@@ -158,7 +160,7 @@ Input: Current chess board, board row, board column
 Output: the given chess piece type
 Dependancies: NONE
 */
-bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode );
+bool checkAllValidKnightPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode, int *targetRow, int *targetCol );
 
 /*
 Description: checks if the current piece is on the leftmost side of the board
@@ -166,7 +168,7 @@ Input: Current chess board, board row, board column
 Output: the given chess piece type
 Dependancies: NONE
 */
-bool checkAllValidPawnPositions( ChessBoardType **board, ChessBoardType **checkedBoard, char currentTurn, char currentType, int currentState, int initialRow, int initialCol, int currentCode );
+bool checkAllValidPawnPositions( ChessBoardType **board, ChessBoardType **checkedBoard, char currentTurn, char currentType, int currentState, int initialRow, int initialCol, int currentCode, int *targetRow, int *targetCol );
 
 /*
 Description: Checks every posible piece 
@@ -174,7 +176,7 @@ Input: Current chess board, board row, board column
 Output: the given chess piece type
 Dependancies: NONE
 */
-bool checkAllValidRookPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int checkRowIndex, int checkColIndex, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode );
+bool checkAllValidRookPositions( ChessBoardType **board, ChessBoardType **checkedBoard, int checkRowIndex, int checkColIndex, int rowIndex, int colIndex, char currentType, char currentTurn, int initialRow, int initialCol, int currentState, int currentCode, int *targetRow, int *targetCol );
 
 /*
 Description: checks if the current piece is on the leftmost side of the board
@@ -296,6 +298,19 @@ Dependancies: NONE
 */
 void displayBottomBoard();
 
+void evaluateBishopMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol);
+void evaluateQueenMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol);
+void evaluateKingMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol);
+void evaluateRookMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol);
+void evaluatePawnMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol);
+void evaluateMove(ChessBoardType **board, ChessBoardType **boardCopy, int startRow, int startCol, int targetRow, int targetCol, char pieceType, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol);
+int moveEvaluation(ChessBoardType **board, int startRow, int startCol, int targetRow, int targetCol, char pieceType);
+bool isOpenFile(ChessBoardType **board, int col);
+void evaluateKnightMoves(ChessBoardType **board, ChessBoardType **boardCopy, int row, int col, int *bestValue, int *moveStartRow, int *moveStartCol, int *moveEndRow, int *moveEndCol);
+int assessTradeRisk(ChessBoardType **board, int pieceRow, int pieceCol, char aiSide, char aiPieceType);
+bool isPieceThreatened(ChessBoardType **board, int pieceRow, int pieceCol, char aiSide);
+bool canCapturePiece(ChessBoardType **board, int startRow, int startCol, int targetRow, int targetCol, char pieceType, char side);
+
 /*
 Description: displays the entire chess board.
 Input: given chess board
@@ -376,6 +391,12 @@ Output: highlighted location
 Dependancies: NONE
 */
 bool isChar( char inputCol );
+
+int getPieceValue(char piece);
+
+void freeBoard(ChessBoardType **board);
+
+int evaluateBoard(ChessBoardType **board);
 
 /*
 Description: checks if the player can move a piece to block the current check using copied board method
@@ -474,6 +495,8 @@ void selectNextPosition( ChessBoardType **board, char currentType,
                              char currentTurn, int initialRow, int initialCol, bool *validMove, bool inCheck );
 
 void sendBoard( ChessBoardType **board );
+
+void aiTeacher( ChessBoardType **board, int *start_row, int *start_col, int *end_row, int *end_col, int code );
 
 /*
 Description: Switches the current turn to the opposite side
